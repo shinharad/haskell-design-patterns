@@ -1,6 +1,6 @@
-name:                lazy-evaluation
+name:                io-as-a-first-class-citizen
 version:             0.1.0.0
-github:              "githubuser/lazy-evaluation"
+github:              "githubuser/io-as-a-first-class-citizen"
 license:             BSD3
 author:              "Author name here"
 maintainer:          "example@example.com"
@@ -17,17 +17,16 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/lazy-evaluation#readme>
+description:         Please see the README on GitHub at <https://github.com/githubuser/io-as-a-first-class-citizen#readme>
 
 dependencies:
 - base >= 4.7 && < 5
-- random
 
 library:
   source-dirs: src
 
 executables:
-  lazy-evaluation-exe:
+  io-as-a-first-class-citizen-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -35,10 +34,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - lazy-evaluation
+    - io-as-a-first-class-citizen
 
 tests:
-  lazy-evaluation-test:
+  io-as-a-first-class-citizen-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -46,4 +45,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - lazy-evaluation
+    - io-as-a-first-class-citizen
