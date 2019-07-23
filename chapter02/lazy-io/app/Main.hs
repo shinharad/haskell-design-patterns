@@ -107,5 +107,80 @@ main8 = do
   chunks <- chunkStream h
   print $ take 10 chunks
     -- ["a b c d\n","e f g h\n","i j k l"]
+
 -- ----------------------------------------------
--- The chunk stream produces data. Next, we write a consumer:
+parseChunkLazy chunk =
+  if rightS == L8.pack ""
+    then Chunk (toS leftS)
+    else LineEnd (toS leftS) ((toS . L8.tail) rightS)
+  where
+    (leftS, rightS) = L8.break (== '\n') chunk
+    toS = map (chr . fromEnum) . LB.unpack
+
+processChunk' :: String -> [L8.ByteString] -> IO ()
+processChunk' acc [] = putStrLn acc -- terminate recursion
+processChunk' acc (chunk:chunks) =
+  case parseChunkLazy chunk of
+    Chunk chunk' -> processChunk' (acc ++ chunk') chunks
+    LineEnd chunk' remainder -> do
+      let line = acc ++ chunk'
+      putStrLn line -- do something with line
+      processChunk' remainder chunks
+
+processChunk = processChunk' ""
+
+main9 = do
+  h <- openFile "jabberwocky.txt" ReadMode
+  chunkStream h >>= processChunk
+  hClose h
+
+-- ----------------------------------------------
+lineStream' accChunks [] = [accChunks]
+lineStream' accChunks (chunk:chunks) =
+  case parseChunkLazy chunk of
+    Chunk chunk' -> lineStream' (accChunks ++ chunk') chunks
+    LineEnd chunk' remainder -> (accChunks ++ chunk') : (lineStream' remainder chunks)
+
+toLines = lineStream' ""
+
+main10 = do
+  h <- openFile "jabberwocky.txt" ReadMode
+  lines' <- liftM toLines (chunkStream h)
+  mapM_ putStrLn lines'
+  hClose h
+
+main11 = do
+  h <- openFile "jabberwocky.txt" ReadMode
+  chunks <- (chunkStream h)
+  let lines' = toLines chunks
+  mapM_ putStrLn lines'
+  hClose h
+
+-- The problems with lazy I/O -------------------
+main12 = do
+  h <- openFile "jabberwocky.txt" ReadMode
+  firstLine <- hGetLine h -- returns a string
+  contents <- hGetContents h -- returns a "promise"
+  hClose h -- close file print $ words firstLine
+  print $ words firstLine
+    -- ["'Twas","brillig,","and","the","slithy","toves"]
+  print $ words contents -- *** Exception: jabberwocky.txt: hGetContents: illegal operation (delayed read on closed handle)
+
+-- Resource management with bracket -------------
+main13 = do
+  h <- openFile "jabberwocky.txt" ReadMode
+  useResource h
+  hClose h
+  where
+    useResource h' = (stream h') >>= mapM_ putStrLn
+    stream h' = hGetContents h' >>= return . lines
+
+main14 = do
+  contents <- readFile "jabberwocky.txt"
+  mapM_ putStrLn (lines contents)
+
+main15 = do
+  withFile "jabberwocky.txt" ReadMode enumerateLines
+  where
+    enumerateLines h = lines' h >>= mapM_ putStrLn
+    lines' h' = hGetContents h' >>= return . lines
