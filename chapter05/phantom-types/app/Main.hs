@@ -69,10 +69,6 @@ b3 = B3
 add3 :: Expr3 Int -> Expr3 Int -> Expr3 Int
 add3 = Add3
 
--- The effect is that adding values remains too ambiguous:
---eval3 :: Expr3 -> t
---eval3 = (Add3 x y) = eval3 x + eval3 y
-
 -- If we use the smart constructors instead of data-type constructors,
 -- the Haskell type-checker will prevent us from creating
 -- If we use smart constructors instead of data-type constructors,
@@ -82,4 +78,14 @@ main4 = do
   -- Add3 (I3 7) (B3 True)
   print $ add3 (i3 10) (i3 7) -- Add3 (I3 10) (I3 7)
   -- rejected by compiler
---  print $ add3 (i3 10) (b3 True) -- INVALID
+  --  print $ add3 (i3 10) (b3 True) -- INVALID
+-- --------------------------------------------------------
+{-
+-- However, type inference remains a problem because the values are still not described accurately. For example:
+(I3 12) :: Expr3 t   -- this
+--      :: Expr3 Int – not this
+
+-- The effect is that adding values remains too ambiguous:
+eval3 :: Expr3 -> t
+eval3 (Add3 x y) = (eval3 x) + (eval3 y)
+-}
